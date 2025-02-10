@@ -5,7 +5,10 @@ import com.books_manager.dto.AuthorDTO;
 import com.books_manager.dto.BookDTO;
 import com.books_manager.services.BookService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,36 +32,14 @@ public class BookController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BookDTO> getBook(@PathVariable int id) {
-        try {
             BookDTO book = bookService.getBookById(id);
             return ResponseEntity.ok(book);
-        }catch (Exception e){
-            return (ResponseEntity<BookDTO>) ResponseEntity.notFound();
-        }
     }
 
     @PostMapping
-    public ResponseEntity<String> addBook(@RequestParam(value = "name", required = false) String name,
-                                          @RequestParam(value = "authorId", required = false) Long authorId,
-                                          @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
-
-        System.out.println("Received name: " + name);
-        System.out.println("Received authorId: " + authorId);
-        System.out.println("Received file: " + file.getOriginalFilename());
-
-        try {
-
-            BookDTO bookDTO = new BookDTO();
-            bookDTO.setName(name);
-            bookDTO.setAuthor(new AuthorDTO(authorId,null));
-            bookDTO.setFile(file);
-
-            bookService.createBook(bookDTO);
-
-            return ResponseEntity.ok("Book uploaded successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error uploading the book: " + e.getMessage());
-        }
+    public ResponseEntity<BookDTO> addBook(BookDTO bookDTO) throws IOException {
+        BookDTO book =  bookService.createBook(bookDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(book);
     }
 
     @DeleteMapping("/{id}")
@@ -75,5 +56,24 @@ public class BookController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book with ID " + id + " not found");
         }
+    }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<ByteArrayResource> downloadBookFile(@PathVariable int id){
+        byte [] fileData = bookService.getFileDataByBookId(id);
+        BookDTO bookDTO = bookService.getBookById(id);
+
+        String fileType = bookDTO.getFileType();
+        if (fileType == null || fileType.trim().isEmpty()) {
+            fileType = "application/octet-stream";
+        }
+
+
+        ByteArrayResource resource = new ByteArrayResource(fileData);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + bookDTO.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(fileType))
+                .body(resource);
     }
 }

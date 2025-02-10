@@ -10,11 +10,13 @@ public interface  BookService {
 
     List<BookDTO> getAllbooks();
 
-    Book createBook(BookDTO bookDTO) throws IOException;
+    BookDTO createBook(BookDTO bookDTO) throws IOException;
 
     int deleteBook(int id);
 
     BookDTO getBookById(int id);
 
     int updateBook(int id, String name);
+
+    byte [] getFileDataByBookId(int id);
 }

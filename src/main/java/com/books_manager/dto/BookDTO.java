@@ -1,6 +1,7 @@
 package com.books_manager.dto;
 
 import com.books_manager.entities.Author;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,4 +17,6 @@ public class BookDTO {
     private String name;
     private AuthorDTO author;
     private MultipartFile file;
+    private String fileName;    // File metadata
+    private String fileType;
 }

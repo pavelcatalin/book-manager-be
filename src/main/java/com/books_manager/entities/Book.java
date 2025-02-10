@@ -15,7 +15,7 @@ public class Book {
     private Integer id;
     private String name;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "authorId")
     @JsonManagedReference
     private Author author;

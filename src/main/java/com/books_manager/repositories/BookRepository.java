@@ -17,10 +17,11 @@ import java.util.Optional;
 public interface BookRepository extends JpaRepository<Book, Integer> {
 
      @Query(value = "SELECT * FROM books", nativeQuery = true)
-     //Check optional
+     @Transactional
      List<Book> findAllBooks();
 
      @Query(value = "SELECT * FROM books WHERE id = :id", nativeQuery = true)
+     @Transactional
      Optional<Book> findBookById(Integer id);
 
 //     @Modifying
@@ -28,9 +29,6 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
 //     @Query(value = "INSERT INTO books (name, author_id, file_data, file_name, file_type) VALUES (:name, :authorId, :fileData, :fileName, :fileType)", nativeQuery = true)
 //     int saveBook(String name, Long authorId, byte[] fileData, String fileName , String fileType);
 
-
-
-    
      @Modifying
      @Transactional
      @Query(value = "DELETE FROM books WHERE id = :id",nativeQuery = true)

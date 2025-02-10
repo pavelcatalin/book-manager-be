@@ -1,33 +1,35 @@
 package com.books_manager.mapper;
 
 import com.books_manager.dto.BookDTO;
-import com.books_manager.entities.Author;
 import com.books_manager.entities.Book;
+import lombok.Data;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.Arrays;
 
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface BookMapper {
     @Mapping(source = "name", target = "name")
     @Mapping(source = "id", target = "id")
     @Mapping(source = "author", target = "author")
-    // Mapping for fileData to file (if needed for uploading the file)
-    @Mapping(target = "file", ignore = true) // Ignore file in DTO during entity to DTO conversion (since we don't need it)
+    @Mapping(target = "file", ignore = true)
+    @Mapping(target = "fileName", source = "fileName")
+    @Mapping(target = "fileType", source = "fileType")
     BookDTO convertFromEntityToDto(Book book);
 
     @Mapping(source = "name", target = "name")
-    @Mapping(target = "id", ignore = true)  // Ignore id as it is auto-generated
+    @Mapping(target = "id", ignore = true)
     @Mapping(source = "author", target = "author")
-    // Here, we map MultipartFile to byte[]
     @Mapping(target = "fileData", expression = "java(mapFileToBytes(bookDto.getFile()))")  // Custom conversion method for MultipartFile
     Book convertFromDtoToEntity(BookDTO bookDto);
 
-    // Custom method to convert MultipartFile to byte[]
     default byte[] mapFileToBytes(MultipartFile file) {
         try {
             if (file != null && !file.isEmpty()) {

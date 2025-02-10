@@ -1,5 +1,6 @@
 package com.books_manager.services;
 
+import com.books_manager.error.handler.ResourceNotFoundException;
 import com.books_manager.dto.BookDTO;
 import com.books_manager.entities.Book;
 import com.books_manager.mapper.BookMapper;
@@ -29,11 +30,11 @@ public class BookServiceImpl implements BookService{
     public List<BookDTO> getAllbooks() {
         List<Book> allBooks = bookRepository.findAllBooks();
 
-        return allBooks.stream().map(bookMapper::convertFromEntityToDto).collect(Collectors.toList());
+        return allBooks.stream().map(book -> bookMapper.convertFromEntityToDto(book)).collect(Collectors.toList());
     }
 
     @Override
-    public Book createBook(BookDTO bookDTO) throws IOException {
+    public BookDTO createBook(BookDTO bookDTO) throws IOException {
         if (bookDTO == null) {
             throw new IllegalArgumentException("BookDTO cannot be null");
         }
@@ -49,7 +50,7 @@ public class BookServiceImpl implements BookService{
         }
 
         Book savedBook = bookRepository.save(book);
-        return savedBook;
+        return bookMapper.convertFromEntityToDto(savedBook);
     }
 
     public int deleteBook(int id){
@@ -57,14 +58,29 @@ public class BookServiceImpl implements BookService{
     }
 
     public BookDTO getBookById(int id) {
-        return bookRepository.findBookById(id)
+        BookDTO book = bookRepository.findBookById(id)
                 .map(bookMapper::convertFromEntityToDto)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        return book;
     }
 
     @Override
     public int updateBook(int id, String name) {
         return bookRepository.updateBook(id,name);
     }
+
+    public byte [] getFileDataByBookId(int id){
+        Book book = bookRepository.findBookById(id).orElseThrow(()->
+                new ResourceNotFoundException("Book with id " + id + " was not found"));
+
+        if (book.getFileData() == null) {
+            throw new ResourceNotFoundException("File not found for book with id: " + id);
+        }
+
+        return book.getFileData();
+    }
+
+
 
 }
